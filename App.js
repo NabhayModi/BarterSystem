@@ -1,6 +1,5 @@
 import React from 'react';
-import { createAppContainer, createSwitchNavigator} from 'react-navigation';
-
+import { createAppContainer, createSwitchNavigator,} from 'react-navigation';
 
 import WelcomeScreen from './screens/WelcomeScreen';
 import { AppDrawerNavigator } from './components/AppDrawerNavigator'
@@ -12,6 +11,7 @@ export default function App() {
     <AppContainer/>
   );
 }
+
 
 const switchNavigator = createSwitchNavigator({
   WelcomeScreen:{screen: WelcomeScreen},
