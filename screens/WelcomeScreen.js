@@ -1,337 +1,318 @@
-import React, { Component } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Image,
-  Modal,
-  KeyboardAvoidingView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ScrollView
-} from "react-native";
-
-import SantaAnimation from "../components/SantaClaus.js";
-import db from "../config";
-import firebase from "firebase";
-
-import { Icon } from "react-native-elements";
+import React, { Component } from 'react';
+import { View, StyleSheet, Text, Image, TouchableOpacity,TextInput, Alert, Modal,ScrollView,KeyboardAvoidingView } from 'react-native';
+import BarterAnimation from '../components/BarterAnimationScreen.js';
 import { RFValue } from "react-native-responsive-fontsize";
 
+import db from '../config';
+import firebase from 'firebase';
+
 export default class WelcomeScreen extends Component {
-  constructor() {
-    super();
-    this.state = {
-      emailId: "",
-      password: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      contact: "",
-      confirmPassword: "",
-      isModalVisible: "false"
-    };
+  constructor(){
+    super()
+    this.state={
+      username : '',
+      password: '',
+      isVisible : false,
+      firstName : "",
+      lastName : "",
+      mobileNumber:"",
+      address : "",
+      confirmPassword : "",
+      currencyCode:""
+    }
   }
 
-  userSignUp = (emailId, password, confirmPassword) => {
-    if (password !== confirmPassword) {
-      return Alert.alert("password doesn't match\nCheck your password.");
-    } else {
-      firebase
-        .auth()
-        .createUserWithEmailAndPassword(emailId, password)
-        .then(() => {
-          db.collection("users").add({
-            first_name: this.state.firstName,
-            last_name: this.state.lastName,
-            contact: this.state.contact,
-            email_id: this.state.emailId,
-            address: this.state.address,
-            IsBookRequestActive: false
-          });
-          return Alert.alert("User Added Successfully", "", [
-            {
-              text: "OK",
-              onPress: () => this.setState({ isModalVisible: false })
-            }
-          ]);
-        })
-        .catch(error => {
-          // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          return Alert.alert(errorMessage);
-        });
-    }
-  };
+  userLogin = (username, password)=>{
+    firebase.auth().signInWithEmailAndPassword(username, password)
+    .then(()=>{
+      this.props.navigation.navigate('HomeScreen')
+    })
+    .catch((error)=> {
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      return Alert.alert(errorMessage)
+    })
+  }
 
-  userLogin = (emailId, password) => {
-    firebase
-      .auth()
-      .signInWithEmailAndPassword(emailId, password)
-      .then(() => {
-        this.props.navigation.navigate("DonateBooks");
+  userSignUp = (username, password,confirmPassword) =>{
+    if(password !== confirmPassword){
+        return Alert.alert("password doesn't match\nCheck your password.")
+    }else{
+      firebase.auth().createUserWithEmailAndPassword(username, password)
+      .then((response)=>{
+        db.collection('users').add({
+          first_name:this.state.firstName,
+          last_name:this.state.lastName,
+          mobile_number:this.state.mobileNumber,
+          username:this.state.username,
+          address:this.state.address,
+          currency_code:this.state.currencyCode
+        })
+        return  Alert.alert(
+             'User Added Successfully',
+             '',
+             [
+               {text: 'OK', onPress: () => this.setState({"isVisible" : false})},
+             ]
+         );
       })
-      .catch(error => {
+      .catch(function(error) {
+        // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
-        return Alert.alert(errorMessage);
+        return Alert.alert(errorMessage)
       });
-  };
+    }
 
-  showModal = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={this.state.isModalVisible}
+  }
+
+  showModal = ()=>(
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={this.state.isVisible}
       >
-        <ScrollView style={styles.scrollview}>
-          <View style={styles.signupView}>
-            <Text style={styles.signupText}> SIGN UP </Text>
+      <View style={{flex: 1,backgroundColor: "#fff"}}>
+        <ScrollView style={{width:'100%'}}>
+        <View style={{flex:0.2,justifyContent:'center',alignItems:'center'}}>
+            <Text style={{fontSize:RFValue(20),fontWeight:"bold",color:"#32867d"}}> SIGN UP </Text>
           </View>
-          <View style={{ flex: 0.95 }}>
-            <Text style={styles.label}>First Name </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"First Name"}
-              maxLength={12}
-              onChangeText={text => {
-                this.setState({
-                  firstName: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}>Last Name </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Last Name"}
-              maxLength={12}
-              onChangeText={text => {
-                this.setState({
-                  lastName: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}>Contact </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Contact"}
-              maxLength={10}
-              keyboardType={"numeric"}
-              onChangeText={text => {
-                this.setState({
-                  contact: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}> Address </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Address"}
-              multiline={true}
-              onChangeText={text => {
-                this.setState({
-                  address: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}>Email </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Email"}
-              keyboardType={"email-address"}
-              onChangeText={text => {
-                this.setState({
-                  emailId: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}> Password </Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Password"}
-              secureTextEntry={true}
-              onChangeText={text => {
-                this.setState({
-                  password: text
-                });
-              }}
-            />
-
-            <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder={"Confrim Password"}
-              secureTextEntry={true}
-              onChangeText={text => {
-                this.setState({
-                  confirmPassword: text
-                });
-              }}
-            />
-          </View>
-
-          <View style={{ flex: 0.2, alignItems: "center" }}>
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={() =>
-                this.userSignUp(
-                  this.state.emailId,
-                  this.state.password,
-                  this.state.confirmPassword
-                )
-              }
-            >
-              <Text style={styles.registerButtonText}>Register</Text>
-            </TouchableOpacity>
-            <Text
-              style={styles.cancelButtonText}
-              onPress={() => {
-                this.setState({ isModalVisible: false });
-              }}
-            >
-              Cancel
-            </Text>
-          </View>
-        </ScrollView>
-      </Modal>
-    );
-  };
-  render() {
-    return (
-      <View style={styles.container}>
-        {this.showModal()}
-        <View style={{ flex: 0.25 }}>
-          <View style={{ flex: 0.15 }} />
-          <View style={styles.santaView}>
-            <Image
-              source={require("../assets/book.png")}
-              style={styles.santaImage}
-              resizeMode={"center"}
-            />
-            
-          </View>
-        </View>
-        <View style={{ flex: 0.45 }}>
-          <View style={styles.TextInput}>
-            <TextInput
-              style={styles.loginBox}
-              placeholder="abc@example.com"
-              placeholderTextColor="gray"
-              keyboardType="email-address"
-              onChangeText={text => {
-                this.setState({
-                  emailId: text
-                });
-              }}
-            />
-            <TextInput
-              style={[styles.loginBox, { marginTop: RFValue(15) }]}
-              secureTextEntry={true}
-              placeholder="Enter Password"
-              placeholderTextColor="gray"
-              onChangeText={text => {
-                this.setState({
-                  password: text
-                });
-              }}
-            />
-          </View>
-          <View style={{ flex: 0.5, alignItems: "center" }}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                this.userLogin(this.state.emailId, this.state.password);
-              }}
-            >
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => this.setState({ isModalVisible: true })}
-            >
-              <Text style={styles.buttonText}>SignUp</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{ flex: 0.3 }}>
-          <Image
-            source={require("../assets/santa.png")}
-            style={styles.bookImage}
-            resizeMode={"contain"}
+          <View style={{flex:0.95}}>
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"First Name"}
+            maxLength ={8}
+            onChangeText={(text)=>{
+              this.setState({
+                firstName: text
+              })
+            }}
+          />
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"Last Name"}
+            maxLength ={8}
+            onChangeText={(text)=>{
+              this.setState({
+                lastName: text
+              })
+            }}
+          />
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"Mobile Number"}
+            maxLength ={10}
+            keyboardType={'numeric'}
+            onChangeText={(text)=>{
+              this.setState({
+                mobileNumber: text
+              })
+            }}
+          />
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"Address"}
+            multiline = {true}
+            onChangeText={(text)=>{
+              this.setState({
+                address: text
+              })
+            }}
+          />
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"Username"}
+            keyboardType ={'email-address'}
+            onChangeText={(text)=>{
+              this.setState({
+                username: text
+              })
+            }}
+          /><TextInput
+            style={styles.formTextInput}
+            placeholder ={"Password"}
+            secureTextEntry = {true}
+            onChangeText={(text)=>{
+              this.setState({
+                password: text
+              })
+            }}
+          /><TextInput
+            style={styles.formTextInput}
+            placeholder ={"Confrim Password"}
+            secureTextEntry = {true}
+            onChangeText={(text)=>{
+              this.setState({
+                confirmPassword: text
+              })
+            }}
+          />
+          <TextInput
+            style={styles.formTextInput}
+            placeholder ={"Country currency code"}
+            maxLength ={8}
+            onChangeText={(text)=>{
+              this.setState({
+                currencyCode: text
+              })
+            }}
           />
         </View>
+        <View style={{flex:0.2,alignItems:'center'}}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={()=>
+                this.userSignUp(this.state.username, this.state.password, this.state.confirmPassword)
+              }
+            >
+            <Text style={styles.registerButtonText}>Register</Text>
+            </TouchableOpacity>
+         
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={()=>this.setState({"isVisible":false})}
+            >
+            <Text style={{  fontSize : RFValue(20),
+                fontWeight:'bold',
+                color: "#32867d",
+                marginTop:RFValue(10)
+                }}>
+                  Cancel
+                </Text>
+            </TouchableOpacity>
+          </View>
+          
+        </ScrollView>
       </View>
-    );
+    </Modal>
+  )
+
+
+  render(){
+    return(
+      <View style={styles.container}>
+        <View style={{justifyContent:'center',alignItems:'center'}}>
+          {
+            this.showModal()
+          }
+        </View>
+        <View style={styles.profileContainer}>
+          {/* <BarterAnimation/> */}
+          <Text style={styles.title}>Barter</Text>
+          <Text style={{color:'#32867d'}}> A Trading Method </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Text style={{color:'#32867d', fontSize:18, fontWeight:'bold',marginLeft:55}}>USERNAME</Text>
+          <View style={{alignItems:'center'}}>
+            <TextInput
+            style={styles.loginBox}
+            keyboardType ={'email-address'}
+            onChangeText={(text)=>{
+              this.setState({
+                username: text
+              })
+            }}
+            />
+          </View>
+          <Text style={{color:'#32867d', fontSize:18, fontWeight:'bold',marginLeft:55}}>PASSWORD</Text>
+          <View style={{alignItems:'center'}}>
+            <TextInput
+              style={styles.loginBox}
+              secureTextEntry = {true}
+              onChangeText={(text)=>{
+                this.setState({
+                  password: text
+                })
+              }}
+            />
+          </View>
+          <View style={{alignItems:'center'}}>
+            <TouchableOpacity
+              style={[styles.button,{marginBottom:10}]}
+              onPress = {()=>{this.userLogin(this.state.username, this.state.password)}}
+              >
+              <Text style={{color:'#32867d', fontSize:18, fontWeight:'bold'}}>LOGIN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={()=>{
+                this.setState({"isVisible":true})
+              }}
+              >
+                <Text style={{color:'#32867d', fontSize:18, fontWeight:'bold'}}>SIGN UP</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    )
   }
 }
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#6fc0b8"
+  container:{
+    flex:1,
+    backgroundColor:'#6fc0b8'
   },
-  loginBox: {
-    width: "80%",
-    height: RFValue(50),
-    borderWidth: 1.5,
-    borderColor: "#ffffff",
-    fontSize: RFValue(20),
-    paddingLeft: RFValue(10)
+  profileContainer:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center',
   },
-  button: {
-    width: "80%",
-    height: RFValue(50),
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: RFValue(25),
-    backgroundColor: "#ffff",
-    shadowColor: "#000",
-    marginBottom: RFValue(10),
-    shadowOffset: {
-      width: 0,
-      height: 8
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10.32,
-    elevation: 16
+  title :{
+    fontSize:60,
+    fontWeight:'300',
+    // fontFamily:'AvenirNext-Heavy',
+    color : '#32867d'
   },
-  buttonText: {
-    color: "#32867d",
-    fontWeight: "300",
-    fontSize: RFValue(12)
+  loginBox:{
+    width: 300,
+    height: 35,
+    borderBottomWidth: 1.5,
+    borderColor:'#32867d',
+    fontSize: 20,
+    marginBottom:20,
+    marginTop:5
+
   },
-  label: {
-    fontSize: RFValue(13),
-    color: "#717D7E",
-    fontWeight: "bold",
-    paddingLeft: RFValue(10),
-    marginLeft: RFValue(20)
+  button:{
+    width:"75%",
+    height:50,
+    justifyContent:'center',
+    alignItems:'center',
+    borderRadius:25,
+    backgroundColor:"#ffff",
+    elevation:10
   },
-  formInput: {
-    width: "90%",
-    height: RFValue(45),
-    padding: RFValue(10),
-    borderWidth: 1,
-    borderRadius: 2,
-    borderColor: "grey",
-    paddingBottom: RFValue(10),
-    marginLeft: RFValue(20),
-    marginBottom: RFValue(14)
+  buttonContainer:{
+    flex:1,
+  },
+  modalContainer:{
+    flex:1,
+    borderRadius:20,
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor:"#ffff",
+    marginRight:30,
+    marginLeft : 30,
+    marginTop:80,
+    marginBottom:80,
+  },
+  formTextInput:{
+      width: "90%",
+      height: RFValue(45),
+      padding: RFValue(10),
+      borderWidth:1,
+      borderRadius:2,
+      borderColor:"grey",
+      paddingBottom:RFValue(10),
+      marginLeft:RFValue(20),
+      marginBottom:RFValue(14)
   },
   registerButton: {
-    width: "75%",
+    width: "85%",
     height: RFValue(50),
-    marginTop: RFValue(20),
+    marginTop:RFValue(20),
     justifyContent: "center",
     alignItems: "center",
     borderRadius: RFValue(3),
@@ -339,56 +320,23 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 8
+      height: 8,
     },
     shadowOpacity: 0.44,
     shadowRadius: 10.32,
     elevation: 16,
-    marginTop: RFValue(10)
+    marginTop: RFValue(10),
   },
   registerButtonText: {
-    fontSize: RFValue(20),
+    fontSize: RFValue(23),
     fontWeight: "bold",
-    color: "#fff"
+    color: "#fff",
   },
-  cancelButtonText: {
-    fontSize: RFValue(15),
-    fontWeight: "bold",
-    color: "#32867d",
-    marginTop: RFValue(10)
+  cancelButton:{
+    width:200,
+    height:30,
+    justifyContent:'center',
+    alignItems:'center',
+    marginTop:5,
   },
-  scrollview: {
-    flex: 1,
-    backgroundColor: "#fff"
-  },
-  signupView: {
-    flex: 0.05,
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  signupText: {
-    fontSize: RFValue(20),
-    fontWeight: "bold",
-    color: "#32867d"
-  },
-  santaView: {
-    flex: 0.85,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: RFValue(10)
-  },
-  santaImage: {
-    width: "70%",
-    height: "100%",
-    resizeMode: "stretch"
-  },
-  TextInput: {
-    flex: 0.5,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  bookImage: {
-    width: "100%",
-    height: RFValue(220)
-  }
-});
+})
